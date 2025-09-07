@@ -2,7 +2,7 @@
 
 import * as path from 'path';
 import * as ts from 'typescript';
-import * as yargs from 'yargs';
+import yargs, { Argv, Arguments } from 'yargs';
 
 import { loadConfigFile, BundlerConfig, ConfigEntryPoint } from '../config-file/load-config-file';
 
@@ -34,7 +34,7 @@ function toStringsArray(data: unknown): string[] | undefined {
 }
 
 /* eslint-disable @typescript-eslint/naming-convention */
-interface ParsedArgs extends yargs.Arguments {
+interface ParsedArgs extends Arguments {
 	sort: boolean;
 	silent: boolean;
 	verbose: boolean;
@@ -59,7 +59,7 @@ interface ParsedArgs extends yargs.Arguments {
 /* eslint-enable @typescript-eslint/naming-convention */
 
 function parseArgs(): ParsedArgs {
-	return yargs
+	return yargs(process.argv.slice(2))
 		.parserConfiguration({
 			/* eslint-disable @typescript-eslint/naming-convention */
 			'boolean-negation': false,
@@ -166,8 +166,8 @@ function parseArgs(): ParsedArgs {
 		.example('$0 path/to/your/entry-file.ts', '')
 		.example('$0 path/to/your/entry-file.ts path/to/your/entry-file-2.ts', '')
 		.example('$0 --external-types jquery react -- entry-file.ts', '')
-		.wrap(Math.min(100, yargs.terminalWidth()))
-		.argv as ParsedArgs;
+		.wrap(Math.min(100, process.stdout.columns || 80))
+		.parseSync() as ParsedArgs;
 }
 
 function generateOutFileName(inputFilePath: string): string {
