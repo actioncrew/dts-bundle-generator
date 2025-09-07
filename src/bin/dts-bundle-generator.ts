@@ -23,7 +23,7 @@ import {
 
 function toStringsArray(data: unknown): string[] | undefined {
 	if (data === undefined) {
-		return data;
+		return data as undefined;
 	}
 
 	if (!Array.isArray(data)) {
