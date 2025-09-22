@@ -1,0 +1,53 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": ".",
+    "allowJs": true,
+    "declaration": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist/streamix",
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "bundler",
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "ES2022",
+    "useDefineForClassFields": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "lib": [
+      "ES2022",
+      "dom"
+    ],
+    "paths": {
+      "@actioncrew/streamix/http": [
+        "./libraries/streamix/http/src/lib/index.ts"
+      ],
+      "@actioncrew/streamix/testing": [
+        "./libraries/streamix/testing/src/lib/index.ts"
+      ],
+      "@actioncrew/streamix/coroutine": [
+        "./libraries/streamix/coroutine/src/lib/index.ts"
+      ],
+      "@actioncrew/streamix": [
+        "./libraries/streamix/src/lib/index.ts"
+      ]
+    }
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+    "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  }
+}

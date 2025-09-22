@@ -1,185 +1,550 @@
-<!-- markdownlint-disable MD033 -->
+# TypeScript Declaration Bundler
 
-<div align="center">
-  <a href="https://github.com/timocov/dts-bundle-generator">
-    <img width="250px" height="250px" src="https://github.com/timocov/dts-bundle-generator/raw/master/.github/logo.svg?sanitize=true">
-  </a>
-</div>
+A powerful TypeScript declaration (.d.ts) bundler for monorepos and multi-package projects. Creates self-contained, dependency-free bundles by intelligently inlining types and resolving cross-package dependencies using advanced dependency graph analysis.
 
-# DTS Bundle Generator
+## What it does
 
-[![GH Actions][ci-img]][ci-link]
-[![npm version][npm-version-img]][npm-link]
-[![Downloads][npm-downloads-img]][npm-link]
-
-Small tool to generate a dts bundle from your ts code.
-
-For example:
-
-```ts
-// a.ts
-export class A {}
-```
-
-```ts
-// b.ts
-export class B {}
-```
-
-```ts
-// entry.ts
-import { A } from './a';
-import { B } from './b';
-
-declare function makeA(): A;
-export function makeB(): B {
-    makeA();
-    return new B();
-}
-```
-
-When you run `dts-bundle-generator -o my.d.ts entry.ts` in `my.d.ts` you will get the following:
-
-```ts
-declare class B {
-}
-export declare function makeB(): B;
-```
+This tool analyzes your TypeScript declaration files, builds a complete dependency graph, and creates bundled `.d.ts` files that include all necessary type definitions. Perfect for libraries that need to distribute clean, self-contained declaration files without external dependencies.
 
 ## Installation
 
-1. Install the package from `npm`:
-
-    ```bash
-    npm install --save-dev dts-bundle-generator
-    ```
-
-    or
-
-    ```bash
-    npm install -g dts-bundle-generator
-    ```
-
-1. Enable `declaration` compiler option in `tsconfig.json`
-
-## Usage
-
-```
-Usage: dts-bundle-generator [options] <file(s)>
-
-Options:
-  --help                         Show help                                                 [boolean]
-  --out-file, -o                 File name of generated d.ts                                [string]
-  --verbose                      Enable verbose logging                   [boolean] [default: false]
-  --silent                       Disable any logging except errors        [boolean] [default: false]
-  --no-check                     Skip validation of generated d.ts file   [boolean] [default: false]
-  --fail-on-class                Fail if generated dts contains class declaration
-                                                                          [boolean] [default: false]
-  --external-inlines             Array of package names from node_modules to inline typings from.
-                                 Used types will be inlined into the output file             [array]
-  --external-imports             Array of package names from node_modules to import typings from.
-                                 Used types will be imported using "import { First, Second } from
-                                 'library-name';".
-                                 By default all libraries will be imported (except inlined libraries
-                                 and libraries from @types)                                  [array]
-  --external-types               Array of package names from @types to import typings from via the
-                                 triple-slash reference directive.
-                                 By default all packages are allowed and will be used according to
-                                 their usages                                                [array]
-  --umd-module-name              Name of the UMD module. If specified then `export as namespace
-                                 ModuleName;` will be emitted                               [string]
-  --project                      Path to the tsconfig.json file that will be used for the
-                                 compilation                                                [string]
-  --sort                         Sort output nodes                        [boolean] [default: false]
-  --inline-declare-global        Enables inlining of `declare global` statements contained in files
-                                 which should be inlined (all local files and packages from
-                                 `--external-inlines`)                    [boolean] [default: false]
-  --inline-declare-externals     Enables inlining of `declare module` statements of the global
-                                 modules (e.g. `declare module 'external-module' {}`, but NOT
-                                 `declare module './internal-module' {}`) contained in files which
-                                 should be inlined (all local files and packages from inlined
-                                 libraries)                               [boolean] [default: false]
-  --disable-symlinks-following   (EXPERIMENTAL) Disables resolving of symlinks to the original path.
-                                 See https://github.com/timocov/dts-bundle-generator/issues/39 for
-                                 more information                         [boolean] [default: false]
-  --respect-preserve-const-enum  Enables stripping the `const` keyword from every direct-exported
-                                 (or re-exported) from entry file `const enum`. See
-                                 https://github.com/timocov/dts-bundle-generator/issues/110 for more
-                                 information                              [boolean] [default: false]
-  --export-referenced-types      By default all interfaces, types and const enums are marked as
-                                 exported even if they aren't exported directly. This option allows
-                                 you to disable this behavior so a node will be exported if it is
-                                 exported from root source file only.      [boolean] [default: true]
-  --config                       File path to the generator config file                     [string]
-  --no-banner                    Allows remove "Generated by dts-bundle-generator" comment from the
-                                 output                                   [boolean] [default: false]
-  --version                      Show version number                                       [boolean]
-```
-
-### Examples
-
-To generate a dts bundle for a single entry file:
-
 ```bash
-./node_modules/.bin/dts-bundle-generator -o my.d.ts path/to/your/entry-file.ts
+npm install --save-dev @actioncrew/dts-bundler
 ```
 
-To generate a dts bundle for multiple entry files:
+## Quick Start
 
-```bash
-./node_modules/.bin/dts-bundle-generator path/to/your/entry-file.ts path/to/your/entry-file-2.ts
+1. **Initialize configuration**: Creates a `dts-bundler.config.json` file with project-specific defaults
+   ```bash
+   npx dts-bundler init
+   ```
+
+2. **Bundle declarations**: Analyzes dependencies and creates optimized bundles
+   ```bash
+   npx dts-bundler
+   ```
+
+3. **Find your bundles**: Check the `dist/bundles/` directory for `.bundle.d.ts` files
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `npx dts-bundler` | Bundle all entry points using configuration |
+| `npx dts-bundler init` | Initialize configuration file |
+| `npx dts-bundler --config <path>` | Use custom configuration file |
+| `npx dts-bundler --verbose` | Enable detailed logging |
+| `npx dts-bundler --include-comments` | Preserve comments in bundles |
+| `npx dts-bundler --banner "Custom banner"` | Add custom banner text |
+| `npx dts-bundler --help` | Show help information |
+
+## Features
+
+- ✅ **Dependency Graph Analysis**: Advanced TypeScript AST analysis with cycle detection
+- ✅ **Smart Type Inlining**: Only inlines types that are actually used
+- ✅ **Cross-Package Resolution**: Handles complex monorepo dependencies
+- ✅ **Topological Sorting**: Bundles in correct dependency order
+- ✅ **External Import Preservation**: Keeps third-party imports intact
+- ✅ **TypeScript Integration**: Full compiler API integration with type checking
+- ✅ **Configuration-Driven**: Flexible setup for any project structure
+- ✅ **Validation**: Ensures bundled output compiles correctly
+- ✅ **Source Maps Support**: Optional source map generation
+- ✅ **CI/CD Ready**: Perfect for automated build pipelines
+
+## Project Structure
+
+The bundler works with various project structures, but here's a typical monorepo setup:
+
+```
+your-project/
+├── packages/
+│   ├── core/
+│   │   └── dist/
+│   │       └── index.d.ts
+│   ├── utils/
+│   │   └── dist/
+│   │       └── index.d.ts
+│   └── components/
+│       └── dist/
+│           └── index.d.ts
+├── dist/
+│   └── bundles/           # Generated bundles
+│       ├── core.bundle.d.ts
+│       ├── utils.bundle.d.ts
+│       └── components.bundle.d.ts
+├── dts-bundler.config.json # Configuration
+├── tsconfig.json          # TypeScript config
+└── package.json           # Project metadata
 ```
 
-To generate a dts bundle for a single entry file with external inlines and imports:
+## Configuration
 
-```bash
-./node_modules/.bin/dts-bundle-generator \
-  --external-inlines=@mycompany/internal-project \
-  --external-imports=@angular/core rxjs \
-  -- path/to/your/entry-file.ts
-```
+Run `npx dts-bundler init` to create a `dts-bundler.config.json` file:
 
-> [!NOTE]
-> Note that, as in the above example, the arguments accepting arrays (like `--external-inlines` or `--external-imports`) accept multiple values separated by spaces. Since the input file(s) are positional arguments, you need to put the `--` separator before it when it is preceded by an argument that accepts multiple values. Otherwise you will get an error (`Error: No input files specified`).
-
-To generate a dts bundle for a single entry file with external types:
-
-```bash
-./node_modules/.bin/dts-bundle-generator --external-types=jquery path/to/your/entry-file.ts
-```
-
-## Config file
-
-It is unnecessary, but you can use config file for the tool. See [config documentation](src/config-file/README.md) for more information.
-
-## Why
-
-If you have modules then you can create definitions by default using `tsc`, but `tsc` generates them for each module separately.
-Yeah, you can use `outFile` (for `amd` and `system`), but generated code looks like this:
-
-```ts
-declare module "a" {
-    export class A {
-    }
-}
-declare module "b" {
-    export class B {
-    }
-}
-declare module "entry" {
-    import { B } from "b";
-    export function makeB(): B;
+```json
+{
+  "tsconfig": "tsconfig.json",
+  "packageName": "@your-org/your-package",
+  "distRoot": "dist",
+  "outputDir": "bundles",
+  "includeComments": false,
+  "banner": "/**\n * @your-org/your-package - TypeScript Declaration Bundles\n * Generated by dts-bundler\n */",
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.test.ts", 
+    "**/node_modules/**"
+  ],
+  "include": [
+    "**/*.d.ts"
+  ],
+  "verbose": false,
+  "validateOutput": true
 }
 ```
 
-but:
+### Configuration Options
 
-1. `A` is not used at all and most probably you do not want to export it.
-1. If you bundle your code in a way when all modules are merged (like when using Webpack or Rollup) then there should be no such modules as `a` or `b` (actually `entry` too) in the resulting file.
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `tsconfig` | `string` | `"tsconfig.json"` | Path to TypeScript configuration file |
+| `packageName` | `string` | Auto-detected | Main package name for alias resolution |
+| `distRoot` | `string` | `"dist"` | Root directory containing compiled .d.ts files |
+| `outputDir` | `string` | `"bundles"` | Output directory for bundled files |
+| `includeComments` | `boolean` | `false` | Preserve comments in bundled output |
+| `banner` | `string` | Auto-generated | Banner text at top of each bundle |
+| `compilerOptions` | `object` | `{}` | Custom TypeScript compiler options |
+| `exclude` | `string[]` | See above | File patterns to exclude from bundling |
+| `include` | `string[]` | `["**/*.d.ts"]` | File patterns to include (overrides exclude) |
+| `verbose` | `boolean` | `false` | Enable detailed logging |
+| `validateOutput` | `boolean` | `true` | Validate bundled output compiles correctly |
+| `entryPoints` | `object` | Auto-detected | Manual entry point overrides |
 
-[ci-img]: https://github.com/timocov/dts-bundle-generator/workflows/CI%20Test/badge.svg?branch=master
-[ci-link]: https://github.com/timocov/dts-bundle-generator/actions?query=branch%3Amaster
+### Advanced Configuration
 
-[npm-version-img]: https://badge.fury.io/js/dts-bundle-generator.svg
-[npm-downloads-img]: https://img.shields.io/npm/dm/dts-bundle-generator.svg
-[npm-link]: https://www.npmjs.com/package/dts-bundle-generator
+For complex projects with custom requirements:
+
+```json
+{
+  "tsconfig": "./build/tsconfig.declarations.json",
+  "packageName": "@myorg/platform",
+  "distRoot": "./build/declarations",
+  "outputDir": "./publish/types",
+  "includeComments": true,
+  "banner": "// MyOrg Platform Types v1.0.0",
+  "compilerOptions": {
+    "target": "ES2020",
+    "strict": true,
+    "declaration": true
+  },
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/internal/**",
+    "**/node_modules/**"
+  ],
+  "include": [
+    "packages/*/dist/**/*.d.ts",
+    "libs/*/dist/**/*.d.ts"
+  ],
+  "verbose": true,
+  "validateOutput": true,
+  "entryPoints": {
+    "@myorg/platform/core": "./packages/core/dist/index.d.ts",
+    "@myorg/platform/utils": "./packages/utils/dist/index.d.ts"
+  }
+}
+```
+
+### Manual Entry Points
+
+Override automatic entry point detection:
+
+```json
+{
+  "entryPoints": {
+    "@mypackage/module-a": "./dist/module-a/index.d.ts",
+    "@mypackage/module-b": "./dist/module-b/index.d.ts",
+    "@mypackage/shared": "./dist/shared/types.d.ts"
+  }
+}
+```
+
+## How It Works
+
+### 1. Dependency Graph Analysis
+
+The bundler analyzes your TypeScript declaration files to build a complete dependency graph:
+
+```typescript
+// core/types.d.ts
+export interface User {
+  id: string;
+  name: string;
+}
+
+// utils/helpers.d.ts  
+import { User } from '@myorg/core';
+export declare function processUser(user: User): string;
+
+// components/user-card.d.ts
+import { User } from '@myorg/core';
+import { processUser } from '@myorg/utils';
+export declare class UserCard {
+  user: User;
+  process(): string;
+}
+```
+
+**Dependency Graph:**
+```
+components/user-card.d.ts → utils/helpers.d.ts → core/types.d.ts
+```
+
+### 2. Topological Sorting
+
+Bundles are created in dependency order to ensure all dependencies are available:
+
+```
+Bundle order:
+1. core.bundle.d.ts     (no dependencies)
+2. utils.bundle.d.ts    (depends on core) 
+3. components.bundle.d.ts (depends on utils, core)
+```
+
+### 3. Smart Type Inlining
+
+Only types that are actually imported and used are inlined:
+
+**components.bundle.d.ts:**
+```typescript
+// External imports (preserved)
+import type * as React from 'react';
+
+// Inter-package imports
+import { User } from '@myorg/core';
+import { processUser } from '@myorg/utils';
+
+// Inlined declarations from other packages
+interface User {
+  id: string;
+  name: string;
+}
+
+declare function processUser(user: User): string;
+
+// Main declarations from this package
+export declare class UserCard {
+  user: User;
+  process(): string;
+}
+
+// Bundled exports
+export { UserCard };
+```
+
+## CLI Usage
+
+### Basic Usage
+
+```bash
+# Bundle using configuration file
+npx dts-bundler
+
+# Initialize new project
+npx dts-bundler init
+```
+
+### With Options
+
+```bash
+# Verbose output
+npx dts-bundler --verbose
+
+# Include comments in bundles
+npx dts-bundler --include-comments
+
+# Custom banner
+npx dts-bundler --banner "// My Custom Banner"
+
+# Custom config file
+npx dts-bundler --config ./custom-bundler.config.json
+```
+
+### Configuration Override
+
+Command line options override configuration file settings:
+
+```bash
+# Force verbose even if config has verbose: false
+npx dts-bundler --verbose
+
+# Add comments even if config has includeComments: false
+npx dts-bundler --include-comments
+```
+
+## Output Examples
+
+### Before Bundling
+
+**Package A (dist/package-a/index.d.ts):**
+```typescript
+export interface ConfigOptions {
+  apiUrl: string;
+  timeout: number;
+}
+```
+
+**Package B (dist/package-b/index.d.ts):**
+```typescript
+import { ConfigOptions } from '@myorg/package-a';
+export declare class ApiClient {
+  constructor(options: ConfigOptions);
+  fetch(path: string): Promise<any>;
+}
+```
+
+### After Bundling
+
+**package-b.bundle.d.ts:**
+```typescript
+/**
+ * @myorg/myproject - TypeScript Declaration Bundles
+ * Generated by dts-bundler
+ */
+
+// Inter-package imports
+import { ConfigOptions } from '@myorg/package-a';
+
+// Inlined declarations from other packages
+interface ConfigOptions {
+  apiUrl: string;
+  timeout: number;
+}
+
+// From: index.d.ts
+declare class ApiClient {
+  constructor(options: ConfigOptions);
+  fetch(path: string): Promise<any>;
+}
+
+// Bundled exports
+export { ApiClient };
+```
+
+## Advanced Use Cases
+
+### Monorepo with Shared Types
+
+```json
+{
+  "packageName": "@myorg/platform",
+  "entryPoints": {
+    "@myorg/platform/shared": "./packages/shared/dist/index.d.ts",
+    "@myorg/platform/client": "./packages/client/dist/index.d.ts", 
+    "@myorg/platform/server": "./packages/server/dist/index.d.ts"
+  }
+}
+```
+
+### Library Distribution
+
+Bundle for npm package distribution:
+
+```json
+{
+  "distRoot": "./lib",
+  "outputDir": "./types",
+  "includeComments": true,
+  "banner": "// MyLibrary v{{VERSION}} - Type Definitions",
+  "validateOutput": true
+}
+```
+
+### CI/CD Integration
+
+```yaml
+# .github/workflows/build.yml
+name: Build and Bundle
+on: [push, pull_request]
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - run: npm ci
+      - run: npm run build
+      - run: npx dts-bundler --verbose
+      
+      - name: Upload bundles
+        uses: actions/upload-artifact@v3
+        with:
+          name: type-bundles
+          path: dist/bundles/
+```
+
+## Troubleshooting
+
+### Common Issues
+
+#### Entry Points Not Found
+```
+No .d.ts entry points found!
+```
+
+**Solutions:**
+1. Ensure your TypeScript compilation is complete
+2. Check `distRoot` path in configuration
+3. Verify `tsconfig.json` paths are correct
+4. Use `--verbose` to see what files are being discovered
+
+#### Circular Dependencies
+```
+⚠️ Circular dependencies detected:
+  package-a.d.ts → package-b.d.ts → package-a.d.ts
+```
+
+**Solutions:**
+1. Refactor code to eliminate circular imports  
+2. Extract shared types to a common package
+3. Use type-only imports where possible
+
+#### TypeScript Compilation Errors
+```
+TypeScript errors found:
+  error TS2307: Cannot find module '@myorg/types'
+```
+
+**Solutions:**
+1. Ensure all referenced packages are built
+2. Check `paths` configuration in `tsconfig.json`
+3. Verify `packageName` matches your actual package structure
+
+#### Bundle Validation Failed
+```
+Validation errors in bundled output:
+  error TS2304: Cannot find name 'SomeType'
+```
+
+**Solutions:**
+1. Check if external dependencies are properly marked
+2. Ensure all used types are properly imported
+3. Add missing types to `include` patterns
+
+### Debug Mode
+
+Enable detailed logging to diagnose issues:
+
+```bash
+npx dts-bundler --verbose
+```
+
+This will show:
+- Configuration being used
+- Entry points discovered
+- Files being processed
+- Dependency graph structure
+- Bundle generation progress
+
+### Configuration Validation
+
+The bundler validates your configuration and provides helpful error messages:
+
+```bash
+npx dts-bundler
+❌ Configuration validation failed:
+  - TypeScript config file not found: ./missing-tsconfig.json
+  - Invalid package name format: invalid@name!
+  - Cannot create output directory: /readonly/path
+```
+
+## Performance Tips
+
+### Large Projects
+
+For projects with many files:
+
+1. **Use specific include patterns:**
+   ```json
+   {
+     "include": ["packages/*/dist/index.d.ts"]
+   }
+   ```
+
+2. **Exclude unnecessary files:**
+   ```json
+   {
+     "exclude": [
+       "**/*.spec.ts",
+       "**/*.test.ts",
+       "**/internal/**"
+     ]
+   }
+   ```
+
+3. **Limit bundling scope:**
+   ```json
+   {
+     "entryPoints": {
+       "@myorg/public-api": "./packages/public-api/dist/index.d.ts"
+     }
+   }
+   ```
+
+### Memory Usage
+
+For very large codebases:
+- Use Node.js with increased memory: `node --max-old-space-size=8192 node_modules/.bin/dts-bundler`
+- Consider splitting into multiple smaller bundles
+
+## API Integration
+
+Use the bundler programmatically:
+
+```typescript
+import { DTSBundler, BundlerConfigManager, DependencyGraph } from '@actioncrew/dts-bundler';
+
+// Load configuration
+const config = BundlerConfigManager.load('./my-config.json');
+
+// Create program and dependency graph
+const program = ts.createProgram(sourceFiles, compilerOptions);
+const graph = new DependencyGraph(program, entryPoints);
+
+// Bundle specific entry
+const bundler = new DTSBundler({
+  entryPoint: './dist/index.d.ts',
+  outputFile: './bundles/my-package.bundle.d.ts',
+  packageName: '@myorg/my-package'
+}, graph);
+
+await bundler.bundle();
+```
+
+## Migration Guide
+
+### From Manual Declaration Management
+
+If you're currently maintaining .d.ts files manually:
+
+1. Set up your build to generate .d.ts files: `tsc --declaration`
+2. Initialize bundler: `npx dts-bundler init`
+3. Configure entry points in `dts-bundler.config.json`
+4. Run bundler: `npx dts-bundler`
+5. Update your package.json `types` field to point to bundles
+
+### From Other Bundlers
+
+The configuration is intentionally similar to other tools:
+
+- **API Extractor**: Similar entry point concept, but focuses on .d.ts bundling only
+- **Rollup**: Similar plugin architecture, but optimized for TypeScript declarations
+- **Webpack**: Similar configuration approach, but specialized for type bundling
+
+## License
+
+MIT © 2025

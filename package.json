@@ -1,58 +1,37 @@
 {
-  "private": true,
-  "name": "dts-bundle-generator",
-  "version": "9.5.1",
-  "description": "DTS Bundle Generator",
-  "main": "dist/bundle-generator.js",
-  "typings": "dist/bundle-generator.d.ts",
-  "bin": "dist/bin/dts-bundle-generator.js",
-  "files": [
-    "config-schema.d.ts",
-    "dist/**/*.d.ts",
-    "dist/**/*.js"
-  ],
-  "author": "Evgeniy Timokhov",
+  "name": "@actioncrew/dts-bundler",
+  "description": "DTS Bundler",
+  "version": "1.0.0",
+  "type": "module",
+  "author": "Oleksii Shepel",
   "bugs": {
-    "url": "https://github.com/timocov/dts-bundle-generator/issues"
+    "url": "https://github.com/actioncrew/dts-bundler/issues"
   },
-  "homepage": "https://github.com/timocov/dts-bundle-generator",
-  "dependencies": {
-    "typescript": ">=5.0.2",
-    "yargs": "^18.0.0"
-  },
-  "devDependencies": {
-    "@types/mocha": "~10.0.0",
-    "@types/node": "~14.18.26",
-    "@types/yargs": "^17.0.33",
-    "@typescript-eslint/eslint-plugin": "~7.4.0",
-    "@typescript-eslint/parser": "~7.4.0",
-    "eslint": "~8.57.0",
-    "eslint-plugin-deprecation": "~2.0.0",
-    "eslint-plugin-import": "~2.29.0",
-    "eslint-plugin-unicorn": "~51.0.1",
-    "mocha": "~10.4.0",
-    "npm-run-all": "~4.1.5",
-    "rimraf": "~5.0.1",
-    "ts-compiler": "npm:typescript@5.4.3",
-    "ts-node": "~10.9.1"
-  },
+  "homepage": "https://github.com/actioncrew/dts-bundler",
   "license": "MIT",
   "readme": "README.md",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/timocov/dts-bundle-generator.git"
-  },
-  "engines": {
-    "node": ">=14.0.0"
+    "url": "git+https://github.com/actioncrew/dts-bundler.git"
   },
   "scripts": {
-    "clean": "rimraf dist/ dts-out/",
-    "lint": "eslint --format=unix ./",
-    "check-dts-config": "node ./node_modules/ts-compiler/bin/tsc -p tsconfig.dts-config.json",
-    "bundle-dts": "npm run check-dts-config && node ./dist/bin/dts-bundle-generator.js --config dts-config.js --silent",
-    "tsc": "node ./node_modules/ts-compiler/bin/tsc --version && node ./node_modules/ts-compiler/bin/tsc -b ./tsconfig.json",
-    "verify": "npm-run-all clean tsc -p bundle-dts lint -s test",
-    "prepare-release": "npm-run-all clean tsc bundle-dts && node scripts/clean-package-json.js",
-    "test": "mocha --recursive -p --reporter list tests/"
+    "clean": "rimraf dist",
+    "build": "npm run clean && vite build --config vite.cli.config.js && node build-package.js",
+    "start": "node --loader ./esm-loader.mjs src/config-manager.ts --config dts-bundler.config.json"
+  },
+  "peerDependencies": {
+    "typescript": "~5.9.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "rimraf": "^6.0.1",
+    "rollup-plugin-preserve-shebang": "^1.0.1",
+    "strip-json-comments": "^5.0.3",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "vite": "^7.1.2",
+    "vite-plugin-dts": "^4.5.4",
+    "vite-plugin-static-copy": "^3.1.2",
+    "vite-tsconfig-paths": "^5.1.4"
   }
 }
