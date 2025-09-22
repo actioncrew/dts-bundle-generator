@@ -1,9 +1,13 @@
 {
   "name": "@actioncrew/dts-bundler",
   "description": "DTS Bundler",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "author": "Oleksii Shepel",
+  "files": [
+    "README.md",
+    "LICENSE"
+  ],
   "bugs": {
     "url": "https://github.com/actioncrew/dts-bundler/issues"
   },
@@ -16,14 +20,16 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "build": "npm run clean && vite build --config vite.cli.config.js && node build-package.js",
-    "start": "node --loader ./esm-loader.mjs src/config-manager.ts --config dts-bundler.config.json"
+    "build": "npm run clean && vite build --config vite.cli.config.js && node build-package.js && npm run copyfiles",
+    "start": "node --loader ./esm-loader.mjs src/config-manager.ts --config dts-bundler.config.json",
+    "copyfiles": "copyfiles README.md LICENSE ./dist/dts-bundler"
   },
   "peerDependencies": {
     "typescript": "~5.9.2"
   },
   "devDependencies": {
     "@types/node": "^24.3.1",
+    "copyfiles": "^2.4.1",
     "rimraf": "^6.0.1",
     "rollup-plugin-preserve-shebang": "^1.0.1",
     "strip-json-comments": "^5.0.3",
