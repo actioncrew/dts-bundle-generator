@@ -1,7 +1,7 @@
-import { readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+const fs = require('fs');
+const path = require('path');
 
-const mainPackage = JSON.parse(readFileSync('package.json', 'utf8'));
+const mainPackage = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
 const distPackage = {
   name: mainPackage.name,
@@ -10,9 +10,11 @@ const distPackage = {
   bin: {
     "dts-bundler": "bin/dts-bundler"
   },
-  type: 'module',
   files: [
-    'bin/'
+    'README.md',
+    'LICENSE',
+    'bin/',
+    'vendor/'
   ],
   keywords: mainPackage.keywords || [],
   author: mainPackage.author,
@@ -21,7 +23,7 @@ const distPackage = {
   peerDependencies: mainPackage.peerDependencies || {}
 };
 
-writeFileSync(
-  join('dist/dts-bundler/', 'package.json'),
+fs.writeFileSync(
+  path.join('dist/dts-bundler/', 'package.json'),
   JSON.stringify(distPackage, null, 2)
 );

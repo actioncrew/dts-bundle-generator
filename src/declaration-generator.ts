@@ -1,5 +1,5 @@
 // dts-generator.ts
-import * as ts from "typescript";
+import * as ts from 'typescript';
 import * as path from "path";
 
 const norm = (p: string) => p.replace(/\\/g, '/');

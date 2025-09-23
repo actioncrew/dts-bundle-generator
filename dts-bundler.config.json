@@ -1,6 +1,6 @@
 {
   "tsconfig": "tsconfig.project.json",
-  "includeComments": true,
+  "includeComments": false,
   "banner": "/**\n *TypeScript Declaration Bundles\n *\n */",
   "exclude": [
     "**/*.spec.ts",
@@ -10,6 +10,6 @@
   "include": [
     "**/*.d.ts"
   ],
-  "verbose": true,
+  "verbose": false,
   "validateOutput": true
 }
