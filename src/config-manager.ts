@@ -241,7 +241,7 @@ export async function main() {
     withRelativePaths = withRelativePaths.map(ep => ({
       ...ep,
       inputFile: norm(path.resolve(compilerOptions.outDir!, ep.inputFile)).replace(/\.ts$/, '.d.ts'),
-      dtsFile: norm(PathHierarchyResolver.calculateDtsFilePath(compilerOptions.outDir!, ep)).replace(/\.d.ts$/, '.out.d.ts')
+      dtsFile: norm(PathHierarchyResolver.calculateDtsFilePath(compilerOptions.outDir!, ep))
     }));
 
     // Bundle each entry in dependency order

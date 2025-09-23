@@ -9,7 +9,7 @@ const EXTERNALS = [
   'process', 'punycode', 'querystring', 'readline', 'repl', 'stream',
   'string_decoder', 'timers', 'tls', 'trace_events', 'tty', 'url', 'util',
   'v8', 'vm', 'zlib', 'worker_threads', 'fsevents',
-  'vite', 'rollup', 'typescript'
+  'vite', 'rollup', 'typescript', 'module-alias'
 ];
 
 module.exports = defineConfig({
@@ -17,11 +17,19 @@ module.exports = defineConfig({
     require('vite-tsconfig-paths').default(),
     require('rollup-plugin-preserve-shebang')(),
     copy({
-          targets: [
-            { src: 'node_modules/typescript/**/*', dest: 'dist/dts-bundler/vendor' }
-          ],
-          flatten: false
-        })
+      targets: [
+        { 
+          src: 'node_modules/typescript/**/*', 
+          dest: 'dist/dts-bundler/vendor' 
+        },
+        { 
+          src: 'node_modules/module-alias/**/*', 
+          dest: 'dist/dts-bundler/vendor' 
+        }
+      ],
+      hook: 'writeBundle', // Copy after bundle is written
+      flatten: false
+    })
   ],
   build: {
     target: 'node22',
@@ -36,21 +44,21 @@ module.exports = defineConfig({
         entryFileNames: 'bin/dts-bundler',
         format: 'cjs',
         banner: `#!/usr/bin/env node
+// Setup module aliases before anything else
 const ___path = require('path');
-require('module-alias/register');
-require('module-alias').addAlias('typescript', ___path.resolve(__dirname, '../vendor/typescript'));
+const ___moduleAlias = require('../vendor/module-alias');
+
+// Register aliases
+___moduleAlias.addAlias('typescript', ___path.join(__dirname, '../vendor/typescript'));
 `
       },
       external: (id: string) => {
         if (id.startsWith('node:')) return true;
         if (EXTERNALS.includes(id)) return true;
+        
+        // Externalize everything from node_modules except what we're handling manually
+        return !id.startsWith('.') && !path.isAbsolute(id);
       }
-    }
-  },
-  // Add resolve configuration to help find TypeScript lib files
-  resolve: {
-    alias: {
-      'typescript': path.resolve(__dirname, 'dist/dts-bundler/vendor/typescript')
     }
   }
 });
