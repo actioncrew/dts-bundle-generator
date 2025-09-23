@@ -5,12 +5,13 @@
     "module": "ESNext",
     "lib": ["ES2022"],
     "skipLibCheck": true,
-
+    "allowJs": true,
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "moduleDetection": "force",
     "noEmit": true,
+    "types": ["types"],
 
     /* Linting */
     "strict": true,
@@ -22,5 +23,5 @@
       "@actioncrew/dts-bundler": ["./src/config-manager.ts"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "types"]
 }

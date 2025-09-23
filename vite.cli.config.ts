@@ -21,7 +21,8 @@ export default defineConfig({
       input: path.resolve(__dirname, './src/config-manager.ts'),
       output: {
         entryFileNames: 'bin/dts-bundler',
-        format: 'es'
+        format: 'es',
+        banner: '#!/usr/bin/env node'
       },
       external: (id) => {
         if (id === 'typescript' || id.startsWith('typescript/')) return true;
