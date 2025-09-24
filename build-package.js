@@ -13,6 +13,7 @@ const distPackage = {
   files: [
     'README.md',
     'LICENSE',
+    'package.json',
     'bin/',
     'vendor/'
   ],
